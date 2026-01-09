@@ -98,26 +98,6 @@ rocm-sdk init
 rocm-sdk test
 ```
 
-### Set useful environmant variables in python env
-
-You can then set useful environment variables to load automatically upon venv activation:
-
-```
-cat >> .aster/bin/activate << 'EOF'
-
-export PATH=${PWD}/.aster/bin/:$(python -c "import sysconfig; print(sysconfig.get_paths()['scripts'])"):$(python -c "import sysconfig; print(sysconfig.get_paths()['purelib'])")/_rocm_sdk_devel/bin/:${PATH}
-
-export PYTHONPATH=${PYTHONPATH}:${PWD}/.aster/python_packages/:$(python -c "import sysconfig; print(sysconfig.get_paths()['purelib'])")
-
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:$(python -c "import sysconfig; print(sysconfig.get_paths()['purelib'])")/_rocm_sdk_devel/lib
-EOF
-
-
-# For good measure, on the first instance do a:
-deactivate
-source .aster/bin/activate
-```
-
 ### Building
 
 To build the project use:
@@ -128,19 +108,28 @@ To build the project use:
   mkdir -p build \
   && cd build \
   && cmake ../ -GNinja \
-    -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-    -DCMAKE_C_COMPILER=clang \
-    -DCMAKE_CXX_COMPILER=clang++ \
-    -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-    -DCMAKE_INSTALL_PREFIX="../.aster" \
-    -DLLVM_EXTERNAL_LIT=${VIRTUAL_ENV}/bin/lit \
-    -DCMAKE_PREFIX_PATH="$(rocm-sdk path --cmake)/hip" \
-    -DHIP_PLATFORM=amd \
+      -DLLVM_CCACHE_BUILD=OFF \
+      -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+      -DCMAKE_C_COMPILER=/opt/rocm-7.1.0/llvm/bin/clang \
+      -DCMAKE_CXX_COMPILER=/opt/rocm-7.1.0/llvm/bin/clang++ \
+      -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+      -DCMAKE_INSTALL_PREFIX="../.aster" \
+      -DLLVM_EXTERNAL_LIT=/opt/venv/bin/lit \
+      -DCMAKE_PREFIX_PATH=/opt/rocm-7.1.0/lib/cmake/hip \
+      -DHIP_PLATFORM=amd \
   && ninja install FileCheck count not \
   && ninja install
 )
 ```
 
+#### Export the python path
+```
+export PYTHONPATH=$PYTHONPATH:/root/workspace/aster/.aster/python_packages
+```
+Check your python installation
+```
+python3 -c "import aster; print('Aster import ok！'); print(aster.__file__)"
+```
 ### Testing
 
 #### Executing lit tests
